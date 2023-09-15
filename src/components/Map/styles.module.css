@@ -1,0 +1,35 @@
+.mapContainer{
+  position: relative;
+  width: 100%;
+  height: 100%;
+  color: white;
+}
+.tag{
+  position: absolute;
+  color: rgb(255, 255, 255);
+  text-shadow: rgb(0, 0, 0) 1px 0 10px;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  fill: aliceblue;
+  stroke: black;
+}
+
+.svg path {
+  stroke-width: 0.5;
+  position: relative;
+}
+.svg path:hover {
+  cursor: pointer;
+  stroke-width: 1;
+  fill: red;
+}
+
+.svg path:hover::after{
+  content: 'HOLA';
+  width: 100px;
+  position: absolute;
+  height: 100px;
+  background-color: blue;}
