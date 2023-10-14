@@ -3,33 +3,50 @@ import Head from 'next/head'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
 import dynamic from 'next/dynamic'
-import { Map } from '@/components'
+import { Map, Selector, Heatmap } from '@/components'
+import { removeAccents } from '@utils/functions'
+import { GetMapDataByMonth } from '@api/api'
 // import Datamap from 'datamaps'
 
 const inter = Inter({ subsets: ['latin'] })
+const estados = ["Aguascalientes", "Baja California", "Baja California Sur", "Campeche", "Chiapas", "Chihuahua", "Ciudad de México", "Coahuila", "Colima", "Durango", "México", "Guanajuato", "Guerrero", "Hidalgo", "Jalisco", "Michoacán", "Morelos", "Nayarit", "Nuevo León", "Oaxaca", "Puebla", "Querétaro", "Quintana Roo", "San Luis Potosí", "Sinaloa", "Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", "Veracruz", "Yucatán", "Zacatecas"];
+export default function Home({ API_URL, mapData, month, disease }) {
+  const [map, setMap] = useState(mapData);
+  const [loading, setLoading] = useState(true);
+  const [percentPerState, setpercentPerState] = useState([]);
+  const [actualMonthSelected, setActualMonthSelected] = useState(month || 7);
+  const [actualDiseaseSelected, setActualDiseaseSelected] = useState(disease || 'ETV');
 
-export default function Home() {
-  const [map, setMap] = useState(null);
-  const [counter, setCounter] = useState(0);
+  const selectDifferentMonth = async (month, diseaseToChage = "ETV") => {
+    setLoading(true);
+    const newData = await GetMapDataByMonth(month, diseaseToChage);
+    setActualMonthSelected(month);
+    setActualDiseaseSelected(diseaseToChage);
+    setMap(newData);
+    setLoading(false);
+  };
+
   useEffect(() => {
 
-    // if (counter > 5) {
-    //   // const map_obj = new Datamap({
-    //   //   element: document.getElementById('container'),
-    //   //   geographyConfig: {
-    //   //     highlightOnHover: false,
-    //   //     popupOnHover: false
-    //   //   }
-    //   // });
-    //   // setMap(map_obj);
-    // }
-    // else {
-    //   // await a second
-    //   setTimeout(() => {
-    //     setCounter(counter + 1);
-    //   }, 1000);
-    // }
-  }, [counter]);
+    if (map?.length > 0) {
+      const finalPercentPerState = [];
+      estados?.forEach(estado => {
+        const estadoFind = map.find(mapE => {
+          const estadoName = removeAccents(estado);
+          const dbEstadoName = removeAccents(mapE?.entidad);
+          return estadoName === dbEstadoName || dbEstadoName.includes(estadoName);
+        })
+        finalPercentPerState.push({ estado, percent: estadoFind?.probabilidad_por_mes || 0 });
+      });
+      setpercentPerState(finalPercentPerState);
+    }
+  }, [map]);
+
+  useEffect(() => {
+
+    setLoading(false);
+  }, [map]);
+
   return (
     <>
       <Head>
@@ -38,11 +55,43 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={ `${styles.main} ${inter.className}` }>
-        <div id="container" className={ `${styles.mapContainer}` } >
-          <Map />
+      {
+        loading && <div className={ `${styles.loadingContainer}` }>
+          <h1>Cargando...</h1>
         </div>
-      </main>
+      }
+      { !loading && <main className={ `${styles.main} ${inter.className}` }>
+        <Heatmap />
+        <div id="container" className={ `${styles.mapContainer}` } >
+          <h1 className={ `${styles.title}` }>Mapa de probabilidad de brotes EFEs y Dengue</h1>
+          <Selector
+            disease={ actualDiseaseSelected }
+            selectDifferentMonth={ selectDifferentMonth }
+            actualMonthSelected={ actualMonthSelected } />
+          { map.length > 0
+            ?
+            <>
+
+              <Map mapData={ percentPerState } />
+            </>
+            : <h1>Tuvimos un problema al cargar la informacion, estamos trabajando en arreglarlo por favor intenta mas tarde</h1>
+          }
+        </div>
+      </main> }
     </>
   )
+}
+
+export async function getStaticProps() {
+  const tableData = 'ETV';
+  const month = 7;
+  const mapData = await fetch(`${process.env.API_URL}/datos/byDate?month=${month}&year=2023&tableData=${tableData}`).then(res => res.json()).then(data => data?.data).catch(err => { });
+  return {
+    props: {
+      disease: tableData,
+      API_URL: process.env.API_URL || 'http://',
+      mapData: mapData || [],
+      month,
+    }
+  }
 }

@@ -23,8 +23,8 @@
 }
 .svg path:hover {
   cursor: pointer;
-  stroke-width: 1;
-  fill: red;
+  stroke-width: 2.5;
+  stroke: rgb(17, 240, 13);
 }
 
 .svg path:hover::after{

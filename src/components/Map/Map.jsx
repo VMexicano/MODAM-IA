@@ -1,35 +1,55 @@
 import React, { useEffect, useState, useRef } from 'react'
+import { arrayOf, shape } from 'prop-types'
 import styles from './styles.module.css'
-const Map = () => {
+import { findOcurrences, getColor } from '@utils/functions'
+const Map = ({ mapData }) => {
   const [estadoNameAndPos, setEstadoNameAndPos] = useState({ name: "", x: 0, y: 0 });
   // Save mouse position
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [mapDatas, setMapDatas] = useState(mapData);
   const svgRef = useRef(null);
   const etiquetaRef = useRef(null);
+  useEffect(() => {
+    setMapDatas(mapData);
+  }, [mapData]);
   useEffect(() => {
     const svg = svgRef.current;
     const estados = svg.querySelectorAll('path');
     const mousePosition = { x: 0, y: 0 };
     window.addEventListener('mousemove', (event) => {
-      mousePosition.x = event.clientX;
-      mousePosition.y = event.clientY;
+      mousePosition.x = event.clientX + 50;
+      mousePosition.y = event.clientY + 50;
       setMousePos(mousePosition);
     });
+
     estados.forEach(estado => {
+      const etiquetaValores = findOcurrences(mapDatas, estado.getAttribute('data-name'));
+      estado.setAttribute('percent', etiquetaValores?.percent || 0);
+      estado.setAttribute('fill', getColor(etiquetaValores?.percent || 0));
       estado.addEventListener('mouseenter', (e) => {
-        setEstadoNameAndPos({ name: estado.getAttribute('data-name'), x: mousePos?.x || 0, y: mousePos?.y || 0 });
+
+        // Muestra la etiqueta al pasar el mouse
+        setEstadoNameAndPos({ name: `${estado.getAttribute('data-name')}: ${estado.getAttribute('percent')}%`, x: mousePos?.x || 0, y: mousePos?.y || 0 });
+
       });
       estado.addEventListener('mouseleave', () => {
         // Oculta la etiqueta al retirar el mouse
         setEstadoNameAndPos({ name: "", x: 0, y: 0 });
       });
     });
-  }, []);
+
+    return () => {
+      estados.forEach(estado => {
+        estado.removeEventListener('mouseenter', () => { });
+        estado.removeEventListener('mouseleave', () => { });
+      });
+    }
+
+  }, [mapDatas]);
   useEffect(() => {
     const etiqueta = etiquetaRef.current;
     etiqueta.style.top = `${mousePos.y - 50}px`;
     etiqueta.style.left = `${mousePos.x - 100}px`;
-
   }, [estadoNameAndPos]);
   return (
     <div className={ styles.mapContainer }>
@@ -69,6 +89,14 @@ const Map = () => {
       </svg>
     </div>
   )
+}
+
+Map.propTypes = {
+  mapData: arrayOf(shape()),
+}
+
+Map.defaultProps = {
+  mapData: [],
 }
 
 export default Map
