@@ -29,9 +29,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Show repo env secret
+      - name: Run Commands with various variables
         run: |
-          echo ${{ secrets.API_URL }}
+          echo "Hello World"
+          echo "This is the $WORKFLOW_VARIABLE environment variable"
+          echo ${{ vars.API_URL }}
       - name: Checkout
         uses: actions/checkout@v3
       - name: Detect package manager
