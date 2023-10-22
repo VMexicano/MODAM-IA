@@ -7,8 +7,26 @@ const Map = ({ mapData }) => {
   // Save mouse position
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [mapDatas, setMapDatas] = useState(mapData);
+  const [viewportSize, setViewportSize] = useState(1024);
   const svgRef = useRef(null);
   const etiquetaRef = useRef(null);
+
+  useEffect(() => {
+    if (window) {
+      const viewportWidth = window.innerWidth;
+      setViewportSize(viewportWidth);
+      window.addEventListener('resize', () => {
+        const viewportWidth = window.innerWidth;
+        setViewportSize(viewportWidth);
+      })
+    }
+
+    return () => {
+      window.removeEventListener('resize', () => { });
+    }
+
+  }, []);
+
   useEffect(() => {
     setMapDatas(mapData);
   }, [mapData]);
@@ -17,8 +35,9 @@ const Map = ({ mapData }) => {
     const estados = svg.querySelectorAll('path');
     const mousePosition = { x: 0, y: 0 };
     window.addEventListener('mousemove', (event) => {
-      mousePosition.x = event.clientX + 50;
-      mousePosition.y = event.clientY + 50;
+      const isMobile = viewportSize < 1024;
+      mousePosition.x = event.clientX;
+      mousePosition.y = event.clientY;
       setMousePos(mousePosition);
     });
 
@@ -27,7 +46,6 @@ const Map = ({ mapData }) => {
       estado.setAttribute('percent', etiquetaValores?.percent || 0);
       estado.setAttribute('fill', getColor(etiquetaValores?.percent || 0));
       estado.addEventListener('mouseenter', (e) => {
-
         // Muestra la etiqueta al pasar el mouse
         setEstadoNameAndPos({ name: `${estado.getAttribute('data-name')}: ${estado.getAttribute('percent')}%`, x: mousePos?.x || 0, y: mousePos?.y || 0 });
 
@@ -48,8 +66,8 @@ const Map = ({ mapData }) => {
   }, [mapDatas]);
   useEffect(() => {
     const etiqueta = etiquetaRef.current;
-    etiqueta.style.top = `${mousePos.y - 50}px`;
-    etiqueta.style.left = `${mousePos.x - 100}px`;
+    etiqueta.style.top = `${mousePos.y - 150}px`;
+    etiqueta.style.left = `${mousePos.x - 150}px`;
   }, [estadoNameAndPos]);
   return (
     <div className={ styles.mapContainer }>

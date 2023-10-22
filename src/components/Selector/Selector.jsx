@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import 'moment/locale/es';
 import moment from 'moment/moment'
-
+import styles from './Selector.module.css'
 const Selector = ({ actualMonthSelected, selectDifferentMonth, disease }) => {
   moment.locale("es");
   const month = moment().format("MMMM");
@@ -18,7 +18,7 @@ const Selector = ({ actualMonthSelected, selectDifferentMonth, disease }) => {
     setTypeOfDiseases(disease)
   }, [disease]);
   return (
-    <div>
+    <div className={ styles.mainContainer }>
       <div>
         <h3>Selecciona el mes</h3>
         {
