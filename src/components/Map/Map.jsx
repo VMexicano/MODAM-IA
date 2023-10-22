@@ -66,6 +66,10 @@ const Map = ({ mapData }) => {
   }, [mapDatas]);
   useEffect(() => {
     const etiqueta = etiquetaRef.current;
+    const isMobile = viewportSize < 1024;
+    if (isMobile) {
+      etiqueta.style.position = 'relative';
+    }
     etiqueta.style.top = `${mousePos.y - 150}px`;
     etiqueta.style.left = `${mousePos.x - 150}px`;
   }, [estadoNameAndPos]);
