@@ -69,6 +69,8 @@ const Map = ({ mapData }) => {
     const isMobile = viewportSize < 1024;
     if (isMobile) {
       etiqueta.style.position = 'relative';
+      etiqueta.style.top = `16px`;
+      etiqueta.style.left = `0px`;
     }
     etiqueta.style.top = `${mousePos.y - 150}px`;
     etiqueta.style.left = `${mousePos.x - 150}px`;
